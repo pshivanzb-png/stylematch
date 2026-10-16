@@ -1,0 +1,124 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script><title>StyleMatch – Smart Shop Assistant</title>
+<style>
+:root{--bg:#faf8f5;--cd:#fff;--tx:#1d1b18;--mu:#6b655d;--ac:#0f6e56;--a2:#e6f2ee;--bd:#e4dfd7;--wa:#b4541a;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#171614;--cd:#232220;--tx:#f1eee8;--mu:#a39d93;--ac:#4cc9a2;--a2:#1e3a31;--bd:#3a3731;--wa:#e8985c}}
+:root[data-theme=dark]{--bg:#171614;--cd:#232220;--tx:#f1eee8;--mu:#a39d93;--ac:#4cc9a2;--a2:#1e3a31;--bd:#3a3731;--wa:#e8985c}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.w{max-width:880px;margin:0 auto;padding:14px}
+h1{font-size:20px;margin:0}h2{font-size:16px;margin:0 0 8px}.mu{color:var(--mu);font-size:13px}
+header{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}
+nav{display:flex;gap:6px;margin-bottom:12px}
+nav button{flex:1;padding:10px;border:1px solid var(--bd);background:var(--cd);color:var(--tx);border-radius:10px;font-weight:600;cursor:pointer}
+nav button.on{background:var(--ac);color:#fff;border-color:var(--ac)}
+.c{background:var(--cd);border:1px solid var(--bd);border-radius:12px;padding:14px;margin-bottom:12px}
+.g{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+label{display:block;font-size:12px;color:var(--mu);margin-bottom:3px}
+input,select,textarea{width:100%;padding:9px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);font:inherit}
+button.b{padding:10px 14px;border:0;border-radius:9px;background:var(--ac);color:#fff;font-weight:600;cursor:pointer}
+button.s{background:var(--a2);color:var(--ac)}button.r{background:transparent;color:var(--wa);padding:4px 8px}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.st{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+.st div{background:var(--cd);border:1px solid var(--bd);border-radius:10px;padding:10px;text-align:center}.st b{font-size:20px;display:block}
+.tw{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:7px 6px;border-bottom:1px solid var(--bd);text-align:left;white-space:nowrap}
+.pill{display:inline-block;padding:2px 8px;border-radius:99px;background:var(--a2);color:var(--ac);font-size:12px;margin:2px 3px 0 0}
+.res{border-left:4px solid var(--ac)}.sold{opacity:.5}
+.tag{font-size:12px;color:var(--wa)}
+#cam{display:none;position:fixed;inset:0;background:#000;z-index:9;flex-direction:column;align-items:center;justify-content:center;gap:10px}#cam video{max-width:96%;max-height:70%}
+.hid{display:none}
+</style></head><body><div class="w">
+<header><div><h1>StyleMatch <span class="mu">· smart assistant for your shop</span></h1><div class="mu">Scan stock once. Get the right piece for every customer.</div></div><button class="b s hid" id="lo" onclick="sb.auth.signOut().then(()=>location.reload())">Log out</button></header>
+<div id="auth" class="c hid"><h2>Shop login</h2><div class="g"><div><label>Email</label><input id="em" type="email" autocomplete="email"></div><div><label>Password (6+ characters)</label><input id="pw" type="password" autocomplete="current-password"></div></div><div class="row"><button class="b" onclick="login(false)">Log in</button><button class="b s" onclick="login(true)">Create shop account</button></div><div class="tag" id="am" style="margin-top:6px"></div></div><div id="app" class="hid"><div class="st" id="st"></div>
+<nav><button id="n1" class="on" onclick="tab(1)">Find for customer</button><button id="n2" onclick="tab(2)">My stock</button></nav>
+
+<section id="t1">
+<div class="c"><h2>Customer needs</h2><div class="g">
+<div><label>Customer's work</label><select id="work"><option value="desk">Office (AC)</option><option value="field">Field / outdoors</option><option value="creative">Creative / shoots</option><option value="sales">Sales / meetings</option><option value="student">Student</option></select></div>
+<div><label>City climate</label><select id="clim"><option value="hot">Hot &amp; humid</option><option value="mild">Mild</option><option value="cool">Cool / cold</option></select></div>
+<div><label>Occasion</label><select id="occ"><option value="daily">Daily wear</option><option value="formal">Formal</option><option value="party">Party / function</option></select></div>
+<div><label>Item type</label><select id="typ"><option value="">Any</option><option>Shirt</option><option>Pant</option><option>T-shirt</option><option>Kurta</option></select></div>
+<div><label>Price range</label><select id="band"><option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option><option value="">Any</option></select><div class="mu" id="bh"></div></div><div><label>Colour tone</label><select id="tone"><option value="">Any</option><option value="light">Light</option><option value="medium">Medium</option><option value="dark">Dark</option></select></div>
+<div><label>Size</label><select id="siz"><option value="">Any</option><option>S</option><option>M</option><option>L</option><option>XL</option></select></div>
+<div><label>Explain in</label><select id="lang"><option value="English">English</option><option value="Telugu">తెలుగు</option><option value="Hindi">हिन्दी</option></select></div></div>
+<div style="margin-top:10px"><label>Personality, comfort, anything else (customer's own words)</label><textarea id="nt" rows="2" placeholder="e.g. I sweat a lot, like simple plain colours, want something smart but light"></textarea></div>
+<div class="row"><button class="b" id="go" onclick="rec()">Find best matches</button><span class="mu" id="ai"></span></div></div>
+<div id="out"></div></section>
+
+<section id="t2" class="hid">
+<div class="c"><h2>Add stock</h2>
+<div class="g"><div><label>Barcode / code</label><input id="f_code"></div><div><label>Name</label><input id="f_name" placeholder="Rydam Satin Shirt"></div>
+<div><label>Type</label><select id="f_type"><option>Shirt</option><option>Pant</option><option>T-shirt</option><option>Kurta</option></select></div>
+<div><label>Fabric (as on tag)</label><input id="f_fab" placeholder="Satin, Lycra"></div><div><label>Price ₹</label><input id="f_price" type="number"></div>
+<div><label>Size</label><select id="f_size"><option>S</option><option selected>M</option><option>L</option><option>XL</option></select></div>
+<div><label>Colour</label><select id="f_col"><option>Black</option><option>White</option><option>Grey</option><option>Navy</option><option>Blue</option><option>Sky</option><option>Green</option><option>Olive</option><option>Red</option><option>Maroon</option><option>Wine</option><option>Brown</option><option>Beige</option><option>Cream</option><option>Khaki</option><option>Pink</option><option>Yellow</option><option>Other</option></select></div><div><label>Qty</label><input id="f_qty" type="number" value="1"></div></div>
+<div class="row"><button class="b s" onclick="scan()">📷 Scan barcode</button><button class="b s" onclick="tagf.click()">🏷️ Read tag photo (AI)</button><button class="b" onclick="add()">Save item</button></div>
+<input id="tagf" type="file" accept="image/*" capture="environment" class="hid" onchange="tagRead(this.files[0])"><div class="mu" id="msg" style="margin-top:6px"></div></div>
+<div class="c"><h2>Bulk import</h2><div class="mu">Upload a CSV (from your billing software or Excel): code,name,type,fabric,price,size,colour,qty. Fabric traits are filled in automatically.</div>
+<div class="row"><input type="file" id="csv" accept=".csv,text/csv" onchange="imp(this.files[0])" style="max-width:260px"><button class="b s" onclick="demo()">Load demo stock</button><button class="b s" onclick="dl()">Download stock CSV</button></div></div>
+<div class="c"><h2>Stock list</h2><div class="tw"><table id="tb"></table></div></div></section></div>
+</div>
+<div id="cam"><video id="vid" playsinline muted></video><div style="color:#fff">Point at the barcode</div><button class="b" onclick="stopCam()">Cancel</button></div>
+<script>
+const $=id=>document.getElementById(id),esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const SB_URL="https://ybpnwkbgmaxazqsoymlc.supabase.co/rest/v1/
+",SB_KEY="sb_publishable_JdceZ4zQQHuJOcoY9Hq-Sg_r-dvq-hq";
+const sb=supabase.createClient(SB_URL,SB_KEY);let uid="",tm;let items=[];
+const save=()=>{clearTimeout(tm);tm=setTimeout(cloud,600)};
+async function cloud(){if(!uid)return;const r=await sb.from("stock").upsert({shop_id:uid,items,updated_at:new Date().toISOString()});if(r.error)$("msg").textContent="Could not save online: "+r.error.message}
+const FAB={cotton:[5,"all",1,0],linen:[5,"hot",2,0],rayon:[4,"hot",1,0],viscose:[4,"hot",1,0],denim:[3,"all",0,1],satin:[2,"cool",1,0],polyester:[2,"cool",1,0],lycra:[0,"all",0,0],wool:[1,"cool",1,0],knit:[3,"cool",0,0],silk:[3,"all",1,0]};
+function infer(f){f=(f||"").toLowerCase();let b=[],s="all",fm=0,t=0,k=0;for(const n in FAB){if(f.includes(n)){b.push(FAB[n][0]);k++;if(FAB[n][1]!="all")s=FAB[n][1];fm+=FAB[n][2];}}
+const bt=b.filter(x=>x>0);const br=bt.length?Math.round(bt.reduce((a,c)=>a+c,0)/bt.length):3;return{br,season:s,formal:fm>0,stretch:f.includes("lycra")||f.includes("spandex")||f.includes("elastane"),sturdy:/cotton|denim|poly/.test(f)}}
+const DK=/black|navy|maroon|wine|brown|charcoal|dark|olive|bottle|burgundy/,LT=/white|cream|beige|sky|pink|yellow|khaki|light|ivory|pastel|peach/;
+function tone(c){c=(c||"").toLowerCase();if(/^dark/.test(c))return"dark";if(/^light/.test(c))return"light";return DK.test(c)?"dark":LT.test(c)?"light":"medium"}
+items.forEach(i=>{if(!i.tone)i.tone=tone(i.color)});
+function bnd(){return[500,750]}
+function bandOf(x){const b=bnd();return x<=b[0]?"low":x<=b[1]?"medium":"high"}
+function hint(){const b=bnd();$("bh").textContent="Low ₹300–500 · Medium ₹500–750 · High ₹750–1000+";return;$("bh").textContent=items.length?"Low ≤ ₹"+b[0]+" · Medium ≤ ₹"+b[1]+" · High above":""}
+function mk(o){return{id:o.id||Date.now()+Math.random(),code:o.code||"",name:o.name||"Item",type:o.type||"Shirt",fabric:o.fabric||"",price:+o.price||0,size:o.size||"M",color:o.color||"",tone:tone(o.color),qty:o.qty==null?1:+o.qty,...infer(o.fabric)}}
+function demo(){const d=[["8901","Cotton Check Shirt","Shirt","Cotton",699,"M","Blue",4],["8902","Linen Casual Shirt","Shirt","Linen",949,"L","Beige",2],["8903","Rydam Satin Shirt","Shirt","Satin, Lycra",899,"M","Wine",3],["8904","Poly-Cotton Formal Shirt","Shirt","Polyester, Cotton",479,"L","White",5],["8905","Rayon Print Shirt","Shirt","Rayon",399,"M","Green",2],["8906","Stretch Denim Pant","Pant","Denim, Lycra",949,"L","Navy",3],["8907","Cotton Chino Pant","Pant","Cotton",799,"M","Khaki",4],["8908","Round Neck T-shirt","T-shirt","Cotton",399,"M","Black",8],["8909","Wool Blend Sweater Shirt","Shirt","Wool, Polyester",999,"L","Grey",1],["8910","Cotton Kurta","Kurta","Cotton",649,"L","White",3],["8911","Silk Blend Party Shirt","Shirt","Silk, Polyester",990,"M","Black",2],["8912","Office Fit Cotton Shirt","Shirt","Cotton, Lycra",599,"XL","Sky",0]];
+items=d.map(r=>mk({code:r[0],name:r[1],type:r[2],fabric:r[3],price:r[4],size:r[5],color:r[6],qty:r[7]}));save();draw()}
+function tab(n){$("t1").classList.toggle("hid",n!=1);$("t2").classList.toggle("hid",n!=2);$("n1").className=n==1?"on":"";$("n2").className=n==2?"on":""}
+function draw(){hint();const ins=items.filter(i=>i.qty>0);$("st").innerHTML=[["Items",items.length],["In stock",ins.length],["Sold out",items.length-ins.length],["Avg price","₹"+(items.length?Math.round(items.reduce((a,c)=>a+c.price,0)/items.length):0)]].map(x=>`<div><b>${x[1]}</b><span class=mu>${x[0]}</span></div>`).join("");
+$("tb").innerHTML="<tr><th>Code<th>Name<th>Fabric<th>₹<th>Size<th>Colour<th>Qty<th>Breathable<th></tr>"+items.map(i=>`<tr class="${i.qty?"":"sold"}"><td>${esc(i.code)}<td>${esc(i.name)}<td>${esc(i.fabric)}<td>${i.price}<td>${esc(i.size)}<td>${esc(i.color)} (${i.tone})<td><input type=number value=${i.qty} style="width:64px" onchange="qty('${i.id}',this.value)"><td>${"●".repeat(i.br)}${"○".repeat(5-i.br)}<td><button class="b r" onclick="del('${i.id}')">✕</button></tr>`).join("")}
+const qty=(id,v)=>{const i=items.find(x=>x.id==id);if(i){i.qty=Math.max(0,+v||0);save();draw()}},del=id=>{items=items.filter(x=>x.id!=id);save();draw()};
+function add(){const f=n=>$("f_"+n).value.trim();if(!f("name")||!f("price")){$("msg").textContent="Please enter name and price.";return}
+items.unshift(mk({code:f("code"),name:f("name"),type:f("type"),fabric:f("fab"),price:f("price"),size:f("size"),color:f("col"),qty:f("qty")}));save();draw();["code","name","fab","price"].forEach(n=>$("f_"+n).value="");$("msg").textContent="Saved ✓ – scan the next one."}
+function imp(file){if(!file)return;const r=new FileReader();r.onload=()=>{const L=r.result.split(/\r?\n/).filter(x=>x.trim());const h=L.shift().toLowerCase().split(",").map(x=>x.trim());let n=0;L.forEach(l=>{const c=l.split(",").map(x=>x.trim()),o={};h.forEach((k,i)=>o[k]=c[i]);o.color=o.color||o.colour;items.push(mk(o));n++});save();draw();$("msg").textContent=n+" items imported"};r.readAsText(file)}
+function dl(){const t="code,name,type,fabric,price,size,colour,qty\n"+items.map(i=>[i.code,i.name,i.type,'"'+i.fabric+'"',i.price,i.size,i.color,i.qty].join(",")).join("\n");const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([t],{type:"text/csv"}));a.download="stock.csv";a.click()}
+let stream,timer;
+async function scan(){if(!("BarcodeDetector"in window)||!navigator.mediaDevices){$("msg").textContent="Camera scan needs Chrome on Android over HTTPS. You can type the code or use a Bluetooth/USB scanner into the Code box.";return}
+try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}});$("vid").srcObject=stream;await $("vid").play();$("cam").style.display="flex";const d=new BarcodeDetector();timer=setInterval(async()=>{try{const r=await d.detect($("vid"));if(r.length){$("f_code").value=r[0].rawValue;stopCam();$("msg").textContent="Scanned "+r[0].rawValue+". Now fill details or photograph the tag."}}catch(e){}},400)}catch(e){$("msg").textContent="Camera not available here. Type the code instead."}}
+function stopCam(){clearInterval(timer);stream&&stream.getTracks().forEach(t=>t.stop());$("cam").style.display="none"}
+async function getAI(){return{json:async(prompt,o)=>{const b={prompt};if(o&&o.images&&o.images[0]){const f=o.images[0];b.mime=f.type||"image/jpeg";b.image=await new Promise(r=>{const x=new FileReader();x.onload=()=>r(x.result.split(",")[1]);x.readAsDataURL(f)})}const r=await sb.functions.invoke("ai",{body:b});if(r.error)throw r.error;return r.data}}}
+async function tagRead(file){if(!file)return;$("msg").textContent="Reading tag…";const s=await getAI();if(!s){$("msg").textContent="AI unavailable right now. Type the details.";return}
+try{const v=await s.json('This is a clothing tag photo from an Indian shop. Return JSON only: {"name":"","type":"Shirt|Pant|T-shirt|Kurta","fabric":"fabric names as written, e.g. Satin, Lycra","price":number or 0,"size":"S|M|L|XL","color":""}. Use empty values if not visible.',{images:[file]});
+const m={name:"name",fabric:"fab",color:"col",size:"size",type:"type"};for(const k in m)if(v[k])$("f_"+m[k]).value=v[k];if(v.price)$("f_price").value=v.price;$("msg").textContent="Tag read ✓ – check the details, then Save."}catch(e){$("msg").textContent="Couldn't read the tag. Please type details."}}
+function score(i,q){let s=0,r=[];const wk=q.work,hot=q.clim=="hot";
+if(hot){s+=i.br*3;if(i.br>=4)r.push("breathable fabric for hot weather")}else if(q.clim=="cool"){s+=(5-i.br)*2;if(i.br<=2)r.push("warmer fabric for cool weather")}else s+=6;
+if(wk=="field"){s+=i.br*2+(i.sturdy?5:0);if(i.sturdy)r.push("sturdy, easy to wear daily outdoors")}
+if(wk=="desk"||wk=="sales"){if(i.formal||/formal|office|chino/i.test(i.name)){s+=6;r.push("neat look for work")}}
+if(wk=="creative"&&/satin|silk|rayon|print/i.test(i.name+i.fabric)){s+=7;r.push("stylish, photo-friendly look")}
+if(wk=="student"){s+=i.price<800?6:0;if(i.price<800)r.push("easy on the pocket")}
+if(q.occ=="formal"&&(i.formal||/formal/i.test(i.name))){s+=7;r.push("suits formal occasions")}
+if(q.occ=="party"&&/satin|silk|print|party/i.test(i.name+i.fabric)){s+=8;r.push("good for functions and evenings")}
+if(q.occ=="daily"&&i.br>=4){s+=3}
+if(i.stretch){s+=2;r.push("stretch for comfort")}
+
+const w=(q.nt||"").toLowerCase();if(w){if(/sweat|hot|heat|light|airy/.test(w)&&i.br>=4){s+=5;r.push("matches your 'stay cool' need")}
+(i.name+" "+i.color).toLowerCase().split(/\W+/).forEach(x=>{if(x.length>3&&w.includes(x)){s+=3;r.push("matches '"+x+"'")}})}
+return{s,r}}
+async function rec(){const q={work:$("work").value,clim:$("clim").value,occ:$("occ").value,band:$("band").value,tone:$("tone").value,nt:$("nt").value,typ:$("typ").value,siz:$("siz").value,lang:$("lang").value};
+let c=items.filter(i=>i.qty>0&&(!q.band||bandOf(i.price)==q.band)&&(!q.tone||i.tone==q.tone)&&(!q.typ||i.type==q.typ)&&(!q.siz||i.size==q.siz));
+if(!c.length){$("out").innerHTML='<div class="c">No item in stock matches this price range, colour tone and size together. Try setting one of them to "Any".</div>';return}
+c=c.map(i=>({i,...score(i,q)})).sort((a,b)=>b.s-a.s).slice(0,6);let top=c.slice(0,3).map(x=>({i:x.i,why:x.r.slice(0,3).join(", ")||"a solid all-round choice"}));
+let used=false;const s=await getAI();
+if(s){$("go").disabled=true;$("ai").textContent="AI is choosing…";try{const cand=c.map(x=>({id:x.i.id,name:x.i.name,fabric:x.i.fabric,price:x.i.price,size:x.i.size,color:x.i.color,tone:x.i.tone,breathability_1to5:x.i.br}));
+const v=await s.json(`You are a friendly shop assistant in India. Customer: work=${q.work}, city climate=${q.clim}, occasion=${q.occ}, price range=${q.band||"any"}, preferred colour tone=${q.tone||"any"}, own words: "${q.nt}". Pick the best 3 from ONLY these in-stock items and write one short reason (max 22 words) each, in ${q.lang}, tied to their needs. Do not invent items or facts. Candidates: ${JSON.stringify(cand)}. Return JSON only: [{"id":..., "why":"..."}]`);
+const m=(Array.isArray(v)?v:[]).map(x=>({i:items.find(y=>String(y.id)==String(x.id)),why:x.why})).filter(x=>x.i&&x.why).slice(0,3);if(m.length){top=m;used=true}}catch(e){}
+$("go").disabled=false}
+$("ai").textContent=used?"AI-picked":"Smart-rules mode (AI unavailable right now)";
+$("out").innerHTML=top.map((t,n)=>`<div class="c res"><b>#${n+1} ${esc(t.i.name)}</b> <span class=mu>· ₹${t.i.price} · ${esc(t.i.size)} · ${esc(t.i.color)}</span><div style="margin:6px 0">${esc(t.why)}</div><span class=pill>${esc(t.i.fabric||"fabric n/a")}</span><span class=pill>Breathability ${t.i.br}/5</span><span class=pill>${esc(t.i.tone)} tone</span><span class=pill>${bandOf(t.i.price)} price</span><span class=pill>${t.i.qty} in stock</span></div>`).join("")+(top.length?'<div class="mu">Tip: tap "My stock" to update quantities after a sale.</div>':"")}
+async function login(up){const e=$("em").value.trim(),p=$("pw").value;$("am").textContent="";const r=up?await sb.auth.signUp({email:e,password:p}):await sb.auth.signInWithPassword({email:e,password:p});if(r.error){$("am").textContent=r.error.message;return}if(up&&!r.data.session){$("am").textContent="Account created. Check your email to confirm it, then log in.";return}boot()}
+async function boot(){const{data}=await sb.auth.getSession();if(!data.session){$("auth").classList.remove("hid");return}uid=data.session.user.id;$("auth").classList.add("hid");$("app").classList.remove("hid");$("lo").classList.remove("hid");const r=await sb.from("stock").select("items").eq("shop_id",uid).maybeSingle();items=(r.data&&r.data.items)||[];items.forEach(i=>{if(!i.tone)i.tone=tone(i.color)});draw()}
+boot();
+</script></body></html>
