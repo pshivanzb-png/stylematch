@@ -60,7 +60,7 @@ button.s{background:var(--a2);color:var(--ac)}button.r{background:transparent;co
 <div id="cam"><video id="vid" playsinline muted></video><div style="color:#fff">Point at the barcode</div><button class="b" onclick="stopCam()">Cancel</button></div>
 <script>
 const $=id=>document.getElementById(id),esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const SB_URL="https://ybpnwkbgmaxazqsoymlc.supabase.co",SB_KEY="PASTE_YOUR_SUPABASE_ANON_KEY";
+const SB_URL="https://ybpnwkbgmaxazqsoymlc.supabase.co",SB_KEY="sb_publishable_JdceZ4zQQHuJOcoY9Hq-Sg_r-dvq-hq";
 const sb=supabase.createClient(SB_URL,SB_KEY);let uid="",tm;let items=[];
 const save=()=>{clearTimeout(tm);tm=setTimeout(cloud,600)};
 async function cloud(){if(!uid)return;const r=await sb.from("stock").upsert({shop_id:uid,items,updated_at:new Date().toISOString()});if(r.error)$("msg").textContent="Could not save online: "+r.error.message}
